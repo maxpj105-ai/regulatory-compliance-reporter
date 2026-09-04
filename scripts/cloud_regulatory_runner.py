@@ -263,7 +263,8 @@ def main():
     
     # Step 2: 轉換為排版精美的 Word 報告 (.docx) 並執行郵件寄送
     docx_path = os.path.join(OUTPUT_DIR, f"{today_str}_最新跨國與崑山台商法規內控內稽指南週報.docx")
-    recipients = os.environ.get("REPORT_RECIPIENTS", "max.fanchiang@bellwether-corp.com; amelia.bui@bellwether-corp.com")
+    raw_recipients = os.environ.get("REPORT_RECIPIENTS", "").strip()
+    recipients = raw_recipients if raw_recipients else "max.fanchiang@bellwether-corp.com; amelia.bui@bellwether-corp.com"
     report_title = f"{today_str} 最新台灣、越南(中越雙語)、泰國與中國大陸(含崑山台商)法規監理、內控內稽與合規因應指南週報"
     
     export_script = os.path.join(SCRIPTS_DIR, 'export_word_and_email.py')
@@ -277,7 +278,15 @@ def main():
         "--email", recipients,
         "--title", report_title
     ]
-    subprocess.run(cmd, check=True)
+    try:
+        subprocess.run(cmd, check=True)
+    except Exception as e:
+        print(f"[WARN] export_word_and_email 執行返回非零代碼: {e}")
+        # 若 Word 檔案已產生，不阻礙整體工作流程
+        if os.path.exists(docx_path):
+            print(f"[RECOVERY] Word 報告已存在於 {docx_path}，繼續執行後續步驟。")
+        else:
+            raise e
     print(f"✅ 商務 Word 週報已成功生成：{docx_path} ({os.path.getsize(docx_path):,} bytes)")
     
     # Step 3: 手機即時推播通知 (Telegram / LINE)

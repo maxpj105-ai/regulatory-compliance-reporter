@@ -335,10 +335,12 @@ def main():
     parser = argparse.ArgumentParser(description="跨國與台商內控內稽法規動態 Word 匯出與郵件寄送工具")
     parser.add_argument("--input", required=True, help="輸入的 Markdown 檔案路徑")
     parser.add_argument("--output", required=True, help="輸出的 Docx 檔案路徑")
-    parser.add_argument("--email", default="max.fanchiang@bellwether-corp.com; amelia.bui@bellwether-corp.com", help="收件人電子信箱（可填多個）")
+    parser.add_argument("--email", nargs="?", const="", default="max.fanchiang@bellwether-corp.com; amelia.bui@bellwether-corp.com", help="收件人電子信箱（可填多個）")
     parser.add_argument("--title", default="最新台灣、越南(中越雙語)、泰國與中國大陸(含崑山台商)法規監理、內控內稽與合規因應指南週報", help="郵件主題與報告標題")
     
     args = parser.parse_args()
+    raw_email = args.email.strip() if args.email else ""
+    target_email = raw_email if raw_email else "max.fanchiang@bellwether-corp.com; amelia.bui@bellwether-corp.com"
     
     if not os.path.exists(args.input):
         print(f"[ERROR] 找不到輸入檔案：{args.input}")
@@ -374,7 +376,7 @@ def main():
     </html>
     """
     
-    send_email_with_attachment(args.email, args.title, html_body, actual_path)
+    send_email_with_attachment(target_email, args.title, html_body, actual_path)
 
 if __name__ == "__main__":
     main()
